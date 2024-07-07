@@ -1,0 +1,75 @@
+#!/bin/bash
+
+
+# Var
+
+proname="3RB0RU"
+maindir="/etc/$proname"
+builddir="$maindir/bac-build"
+oldbuild="$maindir/old-build"
+typ=$1
+old=$2
+
+is_package_installed() {
+    dpkg -l zip | grep -q "Zip Installed" > /dev/null
+    if [ $? -eq 0 ]; then
+            echo "Zip Installed" > /dev/null
+    else
+	    pacman -S zip
+
+    fi
+}
+
+# Start
+
+echo "Deleting Old Build Directory"
+rm -r $oldbuild
+cp -r $builddir $oldbuild
+rm -r $builddir
+
+mkdir $maindir
+mkdir $builddir
+mkdir $builddir/sys-files
+
+case $typ in
+	full)
+		echo "Collecting  Files"
+		cp -r /home $builddir
+		cp /etc/os-release $builddir/sys-files/os-release
+		cp -r /root $builddir
+	        ;;
+	dry)
+		echo "Dry Run"
+		echo "Nothing Copied to $builddir"
+	        ;;
+	*)
+	echo "No Syntax: 3RR0R"
+	;;
+esac
+
+
+echo "Would You Like to See All Files That Are Being Backed Up?(y/N)"
+read fil
+
+sleep 4
+
+if [ $fil = "y" ];
+then
+	ls -R $builddir
+	echo "Press Enter to Continue"
+	read
+fi
+ 
+case $old in
+	old)
+		zip -r $maindir/$proname-$USER-$HOSTNAME-old-backup.zip $oldbuild
+	        ;;
+	*)	
+        zip -r $maindir/$proname-$USER-$HOSTNAME-backup.zip  $builddir
+        ;;
+esac
+
+sleep 4
+echo "Finished Backup!!!"
+
+
